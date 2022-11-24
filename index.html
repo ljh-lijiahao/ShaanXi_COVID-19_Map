@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>陕西新冠疫情实时数据地图</title>
+  <style>
+    #myEcharts {
+      width: 850px;
+      height: 700px;
+      border: solid 0px;
+      margin: 0 auto;
+    }
+  </style>
+  <script src="js/jquery.min.js"></script>
+  <!-- 引入 echarts.js -->
+  <script src="js/echarts.min.js"></script>
+  <!--引入陕西的地图数据js文件，引入后会自动注册地图名字和数据-->
+  <script src="js/shanxi1.js"></script>
+
+</head>
+
+<body>
+  <!--为echarts准备一个dom容器-->
+  <div id="myEcharts"></div>
+  <script>
+    //初始化echarts实例
+    var myChart = echarts.init(document.getElementById('myEcharts'));
+    // 指定图表的配置项和数据
+    option = {
+      geo: {
+        map: 'shanxi1',
+        label: { show: true }, //显示地点
+        roam: false, //缩放
+      },
+      title: {
+        text: '陕西新冠疫情实时数据地图',
+        subtext: '',
+        left: 'center'
+      },
+      tooltip: {
+        trigger: 'item'
+      },
+      legend: {
+        orient: 'vertical',
+        left: 'left',
+        data: ['陕西新冠疫情实时数据地图']
+      },
+      visualMap: {
+        type: 'piecewise',
+        pieces: [
+          { min: 5000, label: '≥5000人', color: '#974236' },
+          { min: 1000, max: 4999, label: '1000-4999人', color: '#ee7263' },
+          { min: 100, max: 999, label: '100-999人', color: '#f5bba7' },
+          { min: 50, max: 99, label: '50-99人', color: '#ffd0a6' },
+          { min: 1, max: 49, label: '1-49人', color: '#ffe7b8' },
+          { min: 0, max: 0, label: '0人', color: '#e2ebf4' },
+        ],
+        color: ['#E0022B', '#E09107', '#A3E00B']
+      },
+      // toolbox: {
+      //   show: true,
+      //   orient: 'vertical',
+      //   left: 'right',
+      //   top: 'center',
+      //   feature: {
+      //     mark: { show: true },
+      //     dataView: { show: true, readOnly: false },
+      //     restore: { show: true },
+      //     saveAsImage: { show: true }
+      //   }
+      // },
+      roamController: {
+        show: true,
+        left: 'right',
+        mapTypeControl: {
+          'shanxi1': true
+        }
+      },
+      series: [{
+        name: '现存确诊数',
+        type: 'map',
+        mapType: 'shanxi1',
+        roam: false,
+        label: {
+          textStyle: {
+            fontsize: 8
+          },
+          show: true,
+          color: "black"
+        },
+        itemStyle:{ //配置地图样式
+          normal:{
+            areaColor:'rgba(0,255,236,0)',
+            borderColor:'rgb(0,0,0,0.2)'
+          },
+          emphasis: { // 选中的区域颜色及阴影效果等
+            areaColor: 'rgba(255,180,0,0.8)',
+            shadowOffsetX: 0,
+            shadowOffsetY: 0,
+            shadowBlur: 20,
+            borderWidth: 0,
+            shadowColor:'rgba(0,0,0,0.5)'
+          }
+        },
+        showLegendSymbol: false,
+        data: []
+      }]
+    };
+    //使用指定的配置项和数据显示图表
+    myChart.setOption(option);
+    //获取数据
+    $.ajax({
+      url: "http://interface.sina.cn/news/wap/fymap2020_data.d.json?_=1580892522427",
+      dataType: "jsonp", //jsonp做跨域访问
+      success: function (res) {
+        let data = res.data;
+        option.title.subtext = data.times + '\n数据源：新浪新闻';
+        let list = data.list[17].city.map(item => ({//接受到的数据进行数据格式转换...
+          name: item.mapName,
+          value: item.econNum,
+        }))
+        option.series[0].data = list;
+        myChart.setOption(option); //使用指定的配置项和数据显示图表
+      }
+    })
+
+  </script>
+</body>
+
+</html>
